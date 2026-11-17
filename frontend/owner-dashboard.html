@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard | CampusHostel</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { margin: 0; background: #f4f7fb; font-family: Arial, sans-serif; color: #1e293b; }
+        .topbar { background: #123b68; color: white; padding: 18px 6%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .topbar h2 { margin: 0; }
+        .topbar button, .primary-btn { background: #f5a623; border: 0; padding: 12px 20px; border-radius: 7px; cursor: pointer; font-weight: bold; color: #172033; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 18px; }
+        .welcome { margin-bottom: 25px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 18px; margin-bottom: 28px; }
+        .card, .panel { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 3px 14px rgba(0,0,0,.05); }
+        .stat-number { font-size: 28px; font-weight: bold; color: #1764a5; }
+        .panel { margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+        .field { display: flex; flex-direction: column; gap: 7px; }
+        .field.full { grid-column: 1/-1; }
+        input, textarea { padding: 12px; border: 1px solid #cbd5e1; border-radius: 7px; font-size: 15px; width: 100%; box-sizing: border-box; }
+        textarea { min-height: 95px; resize: vertical; }
+        .primary-btn { background: #1764a5; color: white; margin-top: 18px; }
+        .message { margin-top: 15px; padding: 12px; border-radius: 7px; display: none; }
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .listing { border: 1px solid #e2e8f0; padding: 15px; border-radius: 9px; margin-top: 12px; }
+        .status { display: inline-block; padding: 5px 10px; background: #fff3cd; color: #856404; border-radius: 20px; font-size: 12px; }
+        @media(max-width:600px) { .form-grid { grid-template-columns: 1fr; } .field.full { grid-column: auto; } }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <h2>CampusHostel</h2>
+        <button id="logoutBtn">Log Out</button>
+    </header>
+
+    <main class="container">
+        <section class="welcome">
+            <h1>Hostel Owner Dashboard</h1>
+            <p>Welcome, <strong id="ownerName">Hostel Owner</strong>. Manage your hostel properties here.</p>
+        </section>
+
+        <section class="stats">
+            <div class="card">
+                <p>Total Listings</p>
+                <div class="stat-number" id="totalListings">0</div>
+            </div>
+            <div class="card">
+                <p>Approved Hostels</p>
+                <div class="stat-number" id="approvedListings">0</div>
+            </div>
+            <div class="card">
+                <p>Pending Approval</p>
+                <div class="stat-number" id="pendingListings">0</div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Add a New Hostel</h2>
+            <p>Provide accurate information about your accommodation.</p>
+
+            <form id="hostelForm">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="name">Hostel Name *</label>
+                        <input id="name" required maxlength="100" placeholder="e.g. Green Valley Hostel">
+                    </div>
+                    <div class="field">
+                        <label for="location">Location *</label>
+                        <input id="location" required maxlength="150" placeholder="e.g. Near Bugema University">
+                    </div>
+                    <div class="field">
+                        <label for="monthlyRent">Monthly Rent (UGX) *</label>
+                        <input id="monthlyRent" type="number" min="0" required placeholder="e.g. 150000">
+                    </div>
+                    <div class="field">
+                        <label for="availableRooms">Available Rooms</label>
+                        <input id="availableRooms" type="number" min="0" value="0">
+                    </div>
+                    <div class="field full">
+                        <label for="description">Description *</label>
+                        <textarea id="description" required maxlength="2000" placeholder="Describe your hostel and accommodation..."></textarea>
+                    </div>
+                    <div class="field full">
+                        <label for="facilities">Facilities (separate with commas)</label>
+                        <input id="facilities" placeholder="Water, Electricity, Wi-Fi, Security">
+                    </div>
+                    <div class="field full">
+                        <label for="photos">Photo URLs (separate with commas, optional)</label>
+                        <input id="photos" placeholder="https://example.com/hostel-photo.jpg">
+                    </div>
+                </div>
+                <button class="primary-btn" type="submit">Submit Hostel for Approval</button>
+                <div id="formMessage" class="message"></div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>My Hostel Listings</h2>
+            <p>Track the hostels you have submitted.</p>
+            <div id="hostelList">Loading your hostel listings...</div>
+        </section>
+    </main>
+
+    <script>
+        const API = "http://localhost:5000/api";
+        const token = localStorage.getItem("campusHostelToken");
+        let currentUser = null;
+
+        try {
+            currentUser = JSON.parse(localStorage.getItem("campusHostelUser") || "null");
+        } catch {
+            currentUser = null;
+        }
+
+        const messageBox = document.getElementById("formMessage");
+
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = "message " + type;
+            messageBox.style.display = "block";
+        }
+
+        function requireOwner() {
+            if (!token || !currentUser || currentUser.role !== "owner") {
+                alert("Please log in using your hostel owner account.");
+                window.location.href = "login.html";
+                return false;
+            }
+            document.getElementById("ownerName").textContent = currentUser.fullName || "Hostel Owner";
+            return true;
+        }
+
+        function updateStats(hostels) {
+            document.getElementById("totalListings").textContent = hostels.length;
+            document.getElementById("approvedListings").textContent = hostels.filter(h => h.status === "approved").length;
+            document.getElementById("pendingListings").textContent = hostels.filter(h => h.status === "pending").length;
+        }
+
+        async function loadHostels() {
+            const list = document.getElementById("hostelList");
+            try {
+                const response = await fetch(API + "/hostels/my-hostels", {
+                    headers: { Authorization: "Bearer " + token }
+                });
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.message || "Unable to load listings.");
+
+                const hostels = data.hostels || [];
+                updateStats(hostels);
+
+                if (!hostels.length) {
+                    list.textContent = "You have not submitted any hostels yet.";
+                    return;
+                }
+
+                list.replaceChildren();
+
+                hostels.forEach(hostel => {
+                    const card = document.createElement("article");
+                    card.className = "listing";
+
+                    const title = document.createElement("h3");
+                    title.textContent = hostel.name;
+
+                    const details = document.createElement("p");
+                    details.textContent = hostel.location + " | UGX " + Number(hostel.monthlyRent).toLocaleString() + " per month";
+
+                    const status = document.createElement("span");
+                    status.className = "status";
+                    status.textContent = hostel.status;
+
+                    card.append(title, details, status);
+                    list.appendChild(card);
+                });
+            } catch (error) {
+                list.textContent = error.message;
+            }
+        }
+
+        document.getElementById("hostelForm").addEventListener("submit", async event => {
+            event.preventDefault();
+
+            const payload = {
+                name: document.getElementById("name").value.trim(),
+                location: document.getElementById("location").value.trim(),
+                monthlyRent: Number(document.getElementById("monthlyRent").value),
+                availableRooms: Number(document.getElementById("availableRooms").value || 0),
+                description: document.getElementById("description").value.trim(),
+                facilities: document.getElementById("facilities").value.split(",").map(x => x.trim()).filter(Boolean),
+                photos: document.getElementById("photos").value.split(",").map(x => x.trim()).filter(Boolean)
+            };
+
+            try {
+                const response = await fetch(API + "/hostels", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || "Could not submit hostel.");
+
+                showMessage(data.message, "success");
+                document.getElementById("hostelForm").reset();
+                await loadHostels();
+            } catch (error) {
+                showMessage(error.message, "error");
+            }
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.removeItem("campusHostelToken");
+            localStorage.removeItem("campusHostelUser");
+            window.location.href = "login.html";
+        });
+
+        if (requireOwner()) loadHostels();
+    </script>
+</body>
+</html>
+

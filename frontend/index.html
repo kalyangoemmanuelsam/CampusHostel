@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusHostel | Find Your Perfect Student Home</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="index.html">Campus<span>Hostel</span></a>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#hostels">Explore Hostels</a>
+            <a href="#how">How It Works</a>
+            <a href="login.html">Login</a>
+            <a class="nav-button" href="register.html">Get Started</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <span class="eyebrow">YOUR CAMPUS. YOUR COMFORT. YOUR HOME.</span>
+                <h1>Find a place you can <span>call home.</span></h1>
+                <p>Discover student accommodation around Bugema University. Compare hostels, explore facilities and connect with owners.</p>
+                <a href="#hostels" class="primary-button">Explore Hostels</a>
+            </div>
+        </section>
+
+        <section class="search-section">
+            <h2>Find accommodation that fits you</h2>
+            <div class="search-box">
+                <input id="searchLocation" placeholder="Enter hostel location">
+                <input id="maxRent" type="number" placeholder="Maximum monthly rent (UGX)">
+                <button id="searchButton">Search Hostels</button>
+            </div>
+        </section>
+
+        <section class="section" id="hostels">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">DISCOVER YOUR NEXT HOME</span>
+                    <h2>Explore Student Hostels</h2>
+                </div>
+                <p>Find accommodation that matches your budget and lifestyle.</p>
+            </div>
+            <div id="hostelResults" class="hostel-grid">
+                <p class="loading">Loading available hostels...</p>
+            </div>
+        </section>
+
+        <section class="how-section" id="how">
+            <span class="eyebrow">SIMPLE AND CONVENIENT</span>
+            <h2>Finding a hostel made easier</h2>
+            <div class="steps">
+                <article><h3>01. Explore</h3><p>Browse available student accommodation.</p></article>
+                <article><h3>02. Compare</h3><p>Compare rent, facilities and locations.</p></article>
+                <article><h3>03. Connect</h3><p>Contact hostel owners and send enquiries.</p></article>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <a class="logo" href="index.html">Campus<span>Hostel</span></a>
+        <p>Helping university students find a place to call home.</p>
+        <p>© 2026 CampusHostel. All rights reserved.</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

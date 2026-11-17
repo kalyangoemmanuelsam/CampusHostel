@@ -18,7 +18,7 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 // Authentication routes
-const authRoutes = require("./routes/authRoutes");
+const authRoutes = require("./routes/authroutes");
 
 app.use("/api/auth", authRoutes);
 
